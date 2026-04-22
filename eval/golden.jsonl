@@ -1,0 +1,25 @@
+{"question": "What is FastAPI?", "expected_keywords": ["framework", "python", "api"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I install FastAPI?", "expected_keywords": ["pip", "install", "fastapi"], "must_cite_source_contains": "fastapi"}
+{"question": "What is a path operation decorator?", "expected_keywords": ["@app", "get", "post", "decorator"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I declare a path parameter?", "expected_keywords": ["path", "parameter"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I declare a query parameter?", "expected_keywords": ["query", "parameter"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I declare a request body?", "expected_keywords": ["pydantic", "body", "model"], "must_cite_source_contains": "fastapi"}
+{"question": "What is dependency injection in FastAPI?", "expected_keywords": ["depends", "dependency"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I run a FastAPI app?", "expected_keywords": ["uvicorn", "run"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I enable interactive docs?", "expected_keywords": ["swagger", "docs", "openapi"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I add response models?", "expected_keywords": ["response_model", "pydantic"], "must_cite_source_contains": "fastapi"}
+{"question": "What is the difference between sync and async path operations?", "expected_keywords": ["async", "def", "await"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I handle errors with HTTPException?", "expected_keywords": ["httpexception", "status_code", "detail"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I add CORS middleware?", "expected_keywords": ["cors", "middleware", "origins"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I read uploaded files?", "expected_keywords": ["uploadfile", "file", "form"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I implement OAuth2 password flow?", "expected_keywords": ["oauth2", "password", "token"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I add background tasks?", "expected_keywords": ["backgroundtasks", "background"], "must_cite_source_contains": "fastapi"}
+{"question": "What are sub-applications and how to mount them?", "expected_keywords": ["mount", "sub", "app"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I configure logging?", "expected_keywords": ["logging", "uvicorn"], "must_cite_source_contains": "fastapi"}
+{"question": "What's the recommended project structure for a larger app?", "expected_keywords": ["routers", "include_router", "module"], "must_cite_source_contains": "fastapi"}
+{"question": "How can I serve static files?", "expected_keywords": ["staticfiles", "mount"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I write tests for endpoints?", "expected_keywords": ["testclient", "pytest"], "must_cite_source_contains": "fastapi"}
+{"question": "What is the difference between BaseModel and dataclass?", "expected_keywords": ["pydantic", "validation"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I deploy FastAPI to production?", "expected_keywords": ["uvicorn", "gunicorn", "docker"], "must_cite_source_contains": "fastapi"}
+{"question": "What is the recommended ASGI server?", "expected_keywords": ["uvicorn"], "must_cite_source_contains": "fastapi"}
+{"question": "How do I add API key authentication?", "expected_keywords": ["api", "key", "header", "depends"], "must_cite_source_contains": "fastapi"}
