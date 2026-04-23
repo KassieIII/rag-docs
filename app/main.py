@@ -16,6 +16,7 @@ from app.generate.prompts import SYSTEM_PROMPT, render_user_prompt
 from app.ingest.loader import load_url
 from app.ingest.pipeline import ingest_document
 from app.models import Chunk, Document
+from app.retrieve.rerank import rerank
 from app.retrieve.search import search
 from app.schemas import (
     AskRequest,
@@ -79,7 +80,11 @@ async def ask(
     session: AsyncSession = Depends(get_session),
     llm: LLMClient = Depends(get_llm),
 ) -> AskResponse:
-    hits = await search(session, body.question, top_k=body.top_k)
+    settings = get_settings()
+    over_fetch = body.top_k * 4 if settings.rerank_enabled else body.top_k
+    hits = await search(session, body.question, top_k=over_fetch)
+    if settings.rerank_enabled and hits:
+        hits = rerank(body.question, hits, top_k=body.top_k)
     if not hits:
         return AskResponse(
             answer="I don't know based on the provided documentation.",
