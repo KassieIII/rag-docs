@@ -1,0 +1,45 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: rag
+      POSTGRES_DB: ragdocs
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d ragdocs"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    # Pull model on first start: docker compose exec ollama ollama pull llama3.2:3b
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql+asyncpg://rag:rag@db:5432/ragdocs
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: llama3.2:3b
+    ports:
+      - "8000:8000"
+    volumes:
+      - models:/models  # cache for sentence-transformers downloads
+
+volumes:
+  pgdata:
+  ollama:
+  models:
