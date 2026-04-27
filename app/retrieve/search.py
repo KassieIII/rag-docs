@@ -32,8 +32,13 @@ async def search(
     query: str,
     *,
     top_k: int = 5,
+    min_score: float = 0.0,
 ) -> list[Hit]:
-    """Return the top ``top_k`` chunks for ``query`` ordered by similarity desc."""
+    """Return the top ``top_k`` chunks for ``query`` ordered by similarity desc.
+
+    Hits with similarity below ``min_score`` are filtered out. This stops us
+    from feeding noise to the LLM when the index has nothing relevant.
+    """
     if not query.strip():
         return []
     if top_k < 1:
@@ -55,7 +60,7 @@ async def search(
         .limit(top_k)
     )
     result = await session.execute(stmt)
-    return [
+    hits = [
         Hit(
             chunk_id=row.id,
             document_id=row.document_id,
@@ -66,3 +71,4 @@ async def search(
         )
         for row in result
     ]
+    return [h for h in hits if h.score >= min_score]

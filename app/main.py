@@ -82,7 +82,12 @@ async def ask(
 ) -> AskResponse:
     settings = get_settings()
     over_fetch = body.top_k * 4 if settings.rerank_enabled else body.top_k
-    hits = await search(session, body.question, top_k=over_fetch)
+    hits = await search(
+        session,
+        body.question,
+        top_k=over_fetch,
+        min_score=settings.retrieve_score_threshold,
+    )
     if settings.rerank_enabled and hits:
         hits = rerank(body.question, hits, top_k=body.top_k)
     if not hits:
