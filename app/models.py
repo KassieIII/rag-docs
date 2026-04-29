@@ -7,7 +7,7 @@ in a pgvector ``vector`` column and is what we search against.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import ForeignKey, Index, String, Text, func
@@ -30,7 +30,7 @@ class Document(Base):
     title: Mapped[str | None] = mapped_column(String(512), nullable=True)
     content_type: Mapped[str] = mapped_column(String(32), default="text/markdown")
     created_at: Mapped[datetime] = mapped_column(
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         server_default=func.now(),
     )
 

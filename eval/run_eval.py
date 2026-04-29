@@ -77,9 +77,7 @@ def evaluate(base_url: str, top_k: int) -> dict[str, float]:
 
             cited_ids = {int(m) for m in CITE_RE.findall(body["answer"])}
             returned_ids = {c["chunk_id"] for c in body["citations"]}
-            if cited_ids and cited_ids.issubset(returned_ids):
-                citation_ok += 1
-            elif not cited_ids and "i don't know" in body["answer"].lower():
+            if (cited_ids and cited_ids.issubset(returned_ids)) or (not cited_ids and "i don't know" in body["answer"].lower()):
                 citation_ok += 1
 
             ans_lower = body["answer"].lower()
@@ -101,7 +99,7 @@ def _percentile(values: list[float], p: float) -> float:
     if not values:
         return 0.0
     sorted_vals = sorted(values)
-    k = max(int(round(p * (len(sorted_vals) - 1))), 0)
+    k = max(round(p * (len(sorted_vals) - 1)), 0)
     return sorted_vals[k]
 
 
