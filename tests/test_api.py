@@ -12,7 +12,6 @@ from fastapi.testclient import TestClient
 from app.deps import get_session
 from app.generate.llm import StubLLMClient
 from app.main import app, get_llm
-from app.retrieve import search as search_module
 from app.retrieve.search import Hit
 
 
@@ -20,10 +19,10 @@ from app.retrieve.search import Hit
 def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     stub_llm = StubLLMClient(answer="The CLI flag is --reload [chunk:7].")
 
-    async def fake_session():  # noqa: ANN202
+    async def fake_session():
         yield None
 
-    async def fake_search(_session, query: str, *, top_k: int = 5):  # noqa: ARG001
+    async def fake_search(_session, query: str, *, top_k: int = 5, min_score: float = 0.0):
         return [
             Hit(
                 chunk_id=7,
@@ -37,7 +36,11 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
 
     app.dependency_overrides[get_session] = fake_session
     app.dependency_overrides[get_llm] = lambda: stub_llm
-    monkeypatch.setattr(search_module, "search", fake_search)
+    # main.py imports `search` by name, so we patch it on main, not on the
+    # source module.
+    import app.main as main_module
+
+    monkeypatch.setattr(main_module, "search", fake_search)
 
     with TestClient(app) as c:
         yield c
