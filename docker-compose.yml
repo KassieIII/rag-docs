@@ -35,6 +35,7 @@ services:
       OLLAMA_BASE_URL: http://ollama:11434
       OLLAMA_MODEL: llama3.2:3b
       LLM_TIMEOUT_S: "300"
+      RERANK_ENABLED: "${RERANK_ENABLED:-false}"
     ports:
       - "8000:8000"
     volumes:

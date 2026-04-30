@@ -108,26 +108,39 @@ Full OpenAPI at `http://localhost:8000/docs` once the API is up.
 
 ## Eval results
 
-Ingested: FastAPI tutorial pages (16 documents, 412 chunks).
-Hardware: laptop, no GPU. Model: `llama3.2:3b` via Ollama.
+Ingested: FastAPI documentation pages (16 documents, 4 042 chunks).
+Hardware: laptop CPU, no GPU. Embedder: `bge-small-en-v1.5` (384-dim).
+LLM: `llama3.2:3b` via Ollama. Eval set: 25 hand-written Q&A pairs in
+[`eval/golden.json`](eval/golden.json), see raw output in
+[`eval/results_baseline.txt`](eval/results_baseline.txt).
 
-| metric            |  base  | + rerank |
-|-------------------|:------:|:--------:|
-| recall@5          |  0.71  |  **0.84** |
-| citation accuracy |  0.88  |  **0.91** |
-| keyword coverage  |  0.62  |  **0.68** |
-| latency p50       |  92 ms |   142 ms  |
-| latency p95       | 188 ms |   274 ms  |
+| metric            |  base   | + rerank |
+|-------------------|:-------:|:--------:|
+| recall@5          |  1.00   | _pending_ |
+| citation accuracy |  0.52   | _pending_ |
+| keyword coverage  |  0.64   | _pending_ |
+| latency p50       | 141.7 s | _pending_ |
+| latency p95       | 203.7 s | _pending_ |
+
+Notes on the honest read:
+
+- `recall@5 = 1.00` is high because the corpus is small and topical;
+  on a wider corpus we expect this to drop into the 0.7–0.9 range.
+- `citation_acc = 0.52` is the weak spot: `llama3.2:3b` frequently
+  paraphrases without emitting `[chunk:N]` markers. A larger model or a
+  stricter system prompt would lift this.
+- Latency is dominated by the local 3B LLM on CPU (~140–200 s per
+  answer). Retrieval itself is sub-second.
 
 Reproduce:
 
 ```bash
 make eval                               # base
-RERANK_ENABLED=true make eval           # rerank
+RERANK_ENABLED=true make eval           # cross-encoder rerank
 ```
 
-The numbers are honest baselines, not best-of. Variance run-to-run is
-~±2pp on recall.
+The rerank column will be filled in by a follow-up commit once the
+second eval run finishes (it shares the same hardware budget).
 
 ---
 
