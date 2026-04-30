@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import ForeignKey, Index, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, Index, String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from app.config import get_settings
@@ -30,6 +30,7 @@ class Document(Base):
     title: Mapped[str | None] = mapped_column(String(512), nullable=True)
     content_type: Mapped[str] = mapped_column(String(32), default="text/markdown")
     created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         server_default=func.now(),
     )
