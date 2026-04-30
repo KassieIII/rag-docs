@@ -110,27 +110,33 @@ Full OpenAPI at `http://localhost:8000/docs` once the API is up.
 
 Ingested: FastAPI documentation pages (16 documents, 4 042 chunks).
 Hardware: laptop CPU, no GPU. Embedder: `bge-small-en-v1.5` (384-dim).
-LLM: `llama3.2:3b` via Ollama. Eval set: 25 hand-written Q&A pairs in
+LLM: `llama3.2:3b` via Ollama. Rerank: `cross-encoder/ms-marco-MiniLM-L-6-v2`.
+Eval set: 25 hand-written Q&A pairs in
 [`eval/golden.json`](eval/golden.json), see raw output in
-[`eval/results_baseline.txt`](eval/results_baseline.txt).
+[`eval/results_baseline.txt`](eval/results_baseline.txt) and
+[`eval/results_rerank.txt`](eval/results_rerank.txt).
 
-| metric            |  base   | + rerank |
-|-------------------|:-------:|:--------:|
-| recall@5          |  1.00   | _pending_ |
-| citation accuracy |  0.52   | _pending_ |
-| keyword coverage  |  0.64   | _pending_ |
-| latency p50       | 141.7 s | _pending_ |
-| latency p95       | 203.7 s | _pending_ |
+| metric            |  base   |   + rerank   |
+|-------------------|:-------:|:------------:|
+| recall@5          |  1.00   |   1.00       |
+| citation accuracy |  0.52   | **0.60**     |
+| keyword coverage  |  0.64   | **0.66**     |
+| latency p50       | 141.7 s | **120.1 s**  |
+| latency p95       | 203.7 s | **172.7 s**  |
 
 Notes on the honest read:
 
 - `recall@5 = 1.00` is high because the corpus is small and topical;
   on a wider corpus we expect this to drop into the 0.7–0.9 range.
-- `citation_acc = 0.52` is the weak spot: `llama3.2:3b` frequently
-  paraphrases without emitting `[chunk:N]` markers. A larger model or a
-  stricter system prompt would lift this.
-- Latency is dominated by the local 3B LLM on CPU (~140–200 s per
-  answer). Retrieval itself is sub-second.
+- `citation_acc` is the weak spot: `llama3.2:3b` frequently paraphrases
+  without emitting `[chunk:N]` markers. Rerank lifts it from 0.52 to
+  0.60 by feeding a tighter context, but a larger model or stricter
+  system prompt would push it further.
+- Latency is dominated by the local 3B LLM on CPU. Rerank actually
+  reduces end-to-end latency here: a cross-encoder over 20 candidates
+  costs ~200 ms, but the trimmed top-5 means the LLM ingests fewer
+  tokens, saving ~20 s per answer.
+- Retrieval itself is sub-second; the wall-clock numbers are the LLM.
 
 Reproduce:
 
@@ -138,9 +144,6 @@ Reproduce:
 make eval                               # base
 RERANK_ENABLED=true make eval           # cross-encoder rerank
 ```
-
-The rerank column will be filled in by a follow-up commit once the
-second eval run finishes (it shares the same hardware budget).
 
 ---
 
