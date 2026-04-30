@@ -44,7 +44,7 @@ def main() -> int:
         print(f"[{i}/{total}] {u}", flush=True)
         try:
             status, body = post_ingest(u)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             print(f"  EXCEPTION: {exc}")
             failed += 1
             continue
