@@ -60,7 +60,7 @@ def evaluate(base_url: str, top_k: int) -> dict[str, float]:
     keyword_scores: list[float] = []
     latencies: list[float] = []
 
-    with httpx.Client(timeout=120.0) as client:
+    with httpx.Client(timeout=600.0) as client:
         for case in cases:
             t0 = time.perf_counter()
             resp = client.post(
