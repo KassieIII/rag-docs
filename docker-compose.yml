@@ -34,6 +34,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://rag:rag@db:5432/ragdocs
       OLLAMA_BASE_URL: http://ollama:11434
       OLLAMA_MODEL: llama3.2:3b
+      LLM_TIMEOUT_S: "300"
     ports:
       - "8000:8000"
     volumes:

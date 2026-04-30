@@ -1,0 +1,45 @@
+# VCS
+.git
+.gitignore
+.github
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+*.egg-info
+build
+dist
+
+# Virtual envs
+.venv
+venv
+env
+
+# Local data / caches that must never enter the image
+models
+data
+*.db
+*.sqlite
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Docs / repo extras not needed at runtime
+ARCHITECTURE.md
+LICENSE
+Makefile
+docker-compose.yml
+.env
+.env.example
+eval
+tests

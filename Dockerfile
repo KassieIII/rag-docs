@@ -18,8 +18,12 @@ RUN apt-get update \
 COPY pyproject.toml README.md ./
 COPY app ./app
 
+# Use PyTorch CPU-only wheel index — saves ~2 GB vs default CUDA build.
+# We do all embedding/rerank on CPU (bge-small + cross-encoder MiniLM).
 RUN pip install --upgrade pip \
- && pip install --prefix /install .
+ && pip install --prefix /install \
+      --extra-index-url https://download.pytorch.org/whl/cpu \
+      .
 
 # ---- runtime ----
 FROM python:${PYTHON_VERSION}-slim AS runtime
@@ -29,12 +33,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
     HF_HOME=/models
 
-RUN useradd --system --uid 1001 --create-home --home /home/app app
+RUN useradd --system --uid 1001 --create-home --home /home/app app \
+ && mkdir -p /models /app \
+ && chown -R app:app /models /app
 
 COPY --from=builder /install /usr/local
-COPY app /app/app
-COPY alembic /app/alembic
-COPY alembic.ini /app/alembic.ini
+COPY --chown=app:app app /app/app
+COPY --chown=app:app alembic /app/alembic
+COPY --chown=app:app alembic.ini /app/alembic.ini
 
 WORKDIR /app
 USER app
