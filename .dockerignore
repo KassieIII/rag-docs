@@ -43,3 +43,7 @@ docker-compose.yml
 .env.example
 eval
 tests
+deploy
+CHANGELOG.md
+CONTRIBUTING.md
+SECURITY.md

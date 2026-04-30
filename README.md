@@ -163,6 +163,21 @@ Tests don't need Postgres or Ollama — `tests/test_chunker.py` is pure
 Python and `tests/test_api.py` injects a stub LLM and a fake search
 function via FastAPI dependency overrides.
 
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for commit conventions, the
+PR checklist, and the release procedure. The full version history is
+in [`CHANGELOG.md`](./CHANGELOG.md). Security reports go via
+[`SECURITY.md`](./SECURITY.md), not as public issues.
+
+---
+
+## Production deployment
+
+A self-contained recipe to put rag-docs behind HTTPS on a 4 GB VPS,
+with Caddy auto-TLS, basic auth on write endpoints, and resource
+limits, lives in [`deploy/`](./deploy/README.md). The whole stack
+(api + db + ollama + caddy) fits in ~2 GB RAM at rest with the
+`llama3.2:1b` model.
+
 ---
 
 ## License

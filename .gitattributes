@@ -1,0 +1,18 @@
+# Default: let Git decide.
+* text=auto
+
+# Shell scripts must always use LF, otherwise they break on Linux.
+*.sh text eol=lf
+
+# Same for any tool config that runs in containers.
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+Caddyfile text eol=lf
+Makefile text eol=lf
+
+# Binary files: never touch them.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.ico binary

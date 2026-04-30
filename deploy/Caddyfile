@@ -1,0 +1,39 @@
+{
+	# Global options. Email is used for the Let's Encrypt account.
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Tighten security headers; rag-docs has no browser UI of its own,
+	# but reverse-proxied OpenAPI docs benefit from these.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# Reasonable per-IP rate limit for /ask. Caddy has no built-in
+	# rate limiter; the LLM_TIMEOUT_S inside the api gives natural
+	# back-pressure (one /ask is ~120 s on CPU, so concurrency is low).
+	# A real deployment behind a CDN would terminate rate limits there.
+
+	# Write endpoints are protected with basic auth. Generate the hash
+	# once with:
+	#   docker run --rm caddy:2-alpine caddy hash-password --plaintext '<your-password>'
+	# Put the username + hash into INGEST_BASIC_AUTH as e.g.:
+	#   admin <bcrypt-hash>
+	@write {
+		path /ingest /ingest/* /documents /documents/*
+		method POST DELETE
+	}
+	basic_auth @write {
+		{$INGEST_BASIC_AUTH}
+	}
+
+	reverse_proxy api:8000 {
+		header_up X-Real-IP {remote_host}
+	}
+}
