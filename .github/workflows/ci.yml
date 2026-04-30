@@ -29,7 +29,15 @@ jobs:
         env:
           # tests stub out DB and LLM, so a placeholder URL is fine
           DATABASE_URL: postgresql+asyncpg://rag:rag@localhost:5432/ragdocs
-        run: pytest --cov=app --cov-report=term-missing
+        run: pytest --cov=app --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   docker-build:
     runs-on: ubuntu-latest

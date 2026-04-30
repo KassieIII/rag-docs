@@ -6,9 +6,12 @@ Python, single `docker compose up`, no vendor lock-in, no API keys
 required.
 
 [![CI](https://github.com/KassieIII/rag-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/KassieIII/rag-docs/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/KassieIII/rag-docs?display_name=tag&sort=semver)](https://github.com/KassieIII/rag-docs/releases)
+[![codecov](https://codecov.io/gh/KassieIII/rag-docs/branch/main/graph/badge.svg)](https://codecov.io/gh/KassieIII/rag-docs)
 ![Python](https://img.shields.io/badge/python-3.13-3776ab)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)
 ![pgvector](https://img.shields.io/badge/pgvector-HNSW-4169e1)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
