@@ -98,14 +98,77 @@ design, and why pgvector beat the alternatives I considered.
 
 ## API
 
-| Method | Path         | Body                                              | Returns |
-|--------|--------------|---------------------------------------------------|---------|
-| POST   | `/ingest`    | `{"url": "...", "title": "?"}`                    | `{document_id, chunks, replaced}` |
-| POST   | `/ask`       | `{"question": "...", "top_k": 5}`                 | `{answer, citations[]}` |
-| GET    | `/documents` | —                                                 | `[{id, source, title, chunks}]` |
-| GET    | `/health`    | —                                                 | `{db, embedder, llm}` |
+| Method | Path           | Body                                              | Returns |
+|--------|----------------|---------------------------------------------------|---------|
+| POST   | `/ingest`      | `{"url": "...", "title": "?"}`                    | `{document_id, chunks, replaced}` |
+| POST   | `/ask`         | `{"question": "...", "top_k": 5}`                 | `{answer, citations[]}` |
+| POST   | `/ask/stream`  | same as `/ask`                                    | `text/event-stream` (see below) |
+| GET    | `/documents`   | —                                                 | `[{id, source, title, chunks}]` |
+| GET    | `/health`      | —                                                 | `{db, embedder, llm}` |
+| GET    | `/metrics`     | —                                                 | Prometheus text exposition |
 
 Full OpenAPI at `http://localhost:8000/docs` once the API is up.
+
+### Streaming answers (SSE)
+
+`POST /ask/stream` returns a `text/event-stream`. Citations arrive
+**up-front** so a UI can render sources before the model finishes; the
+answer text then streams in `token` events; the connection ends with a
+`done` marker.
+
+```text
+event: citations
+data: {"citations":[{"chunk_id":14,"score":0.78,...}]}
+
+event: token
+data: {"text":"Use a curly-brace placeholder"}
+
+event: token
+data: {"text":" in the path string [chunk:14]."}
+
+event: done
+data: {}
+```
+
+```bash
+make ask-stream QUESTION="How do I declare a path parameter?"
+```
+
+### Metrics
+
+`GET /metrics` exposes Prometheus counters and histograms — wire it into
+Grafana, or just `curl` for a quick latency / error sanity check:
+
+```text
+rag_ask_requests_total{rerank="off",status="200"}      127
+rag_ask_latency_seconds_bucket{le="2"}                  98
+rag_ask_latency_seconds_bucket{le="5"}                 121
+rag_retrieve_latency_seconds_bucket{le="0.05"}         126
+rag_llm_latency_seconds_bucket{le="30"}                119
+rag_ask_no_hits_total                                    3
+```
+
+```bash
+make metrics
+```
+
+---
+
+## Demo
+
+A copy-pasteable end-to-end walkthrough lives in
+[`scripts/demo.sh`](scripts/demo.sh): `/health` → `/ingest` →
+`/ask` → `/ask/stream` → `/metrics`.
+
+```bash
+make demo
+```
+
+To re-record the asciinema clip (used in this README):
+
+```bash
+RECORD=1 ./scripts/demo.sh   # writes assets/demo.cast
+```
 
 ---
 

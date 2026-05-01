@@ -1,4 +1,4 @@
-.PHONY: help up down logs ingest ask eval test lint typecheck format migrate model-pull
+.PHONY: help up down logs ingest ask ask-stream metrics demo eval test lint typecheck format migrate model-pull
 
 PY ?= python
 URL ?= https://raw.githubusercontent.com/tiangolo/fastapi/master/docs/en/docs/tutorial/first-steps.md
@@ -44,6 +44,17 @@ ask:
 	curl -fsS -X POST http://localhost:8000/ask \
 	  -H 'Content-Type: application/json' \
 	  -d '{"question":"$(QUESTION)","top_k":5}' | $(PY) -m json.tool
+
+ask-stream:
+	curl -fsSN -X POST http://localhost:8000/ask/stream \
+	  -H 'Content-Type: application/json' \
+	  -d '{"question":"$(QUESTION)","top_k":5}'
+
+metrics:
+	@curl -fsS http://localhost:8000/metrics | grep -E "^rag_"
+
+demo:
+	bash scripts/demo.sh
 
 eval:
 	$(PY) eval/run_eval.py --base-url http://localhost:8000

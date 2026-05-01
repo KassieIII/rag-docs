@@ -67,3 +67,39 @@ def test_ask_validates_question(client: TestClient) -> None:
 def test_ask_top_k_bounds(client: TestClient) -> None:
     resp = client.post("/ask", json={"question": "x", "top_k": 999})
     assert resp.status_code == 422
+
+
+def test_ask_stream_emits_citations_then_tokens_then_done(client: TestClient) -> None:
+    import json
+    import re
+
+    with client.stream("POST", "/ask/stream", json={"question": "How do I reload?"}) as resp:
+        assert resp.status_code == 200
+        assert resp.headers["content-type"].startswith("text/event-stream")
+        body = "".join(resp.iter_text())
+
+    citations_at = body.find("event: citations")
+    token_at = body.find("event: token")
+    done_at = body.find("event: done")
+    assert 0 <= citations_at < token_at < done_at, body
+
+    # Concatenate every streamed token payload — should reproduce the
+    # canned stub answer verbatim.
+    tokens = [
+        json.loads(payload)["text"]
+        for payload in re.findall(r"event: token\ndata: (\{.*?\})\n", body)
+    ]
+    assert "".join(tokens) == "The CLI flag is --reload [chunk:7]."
+
+
+def test_metrics_endpoint_exposes_prometheus_text(client: TestClient) -> None:
+    # Drive at least one /ask so the counter has a sample.
+    client.post("/ask", json={"question": "x"})
+
+    resp = client.get("/metrics")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"].startswith("text/plain")
+    body = resp.text
+    assert "rag_ask_requests_total" in body
+    assert "rag_ask_latency_seconds" in body
+    assert "rag_retrieve_latency_seconds" in body

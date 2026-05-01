@@ -20,6 +20,7 @@ dependencies = [
     "markdown-it-py>=3.0",
     "pypdf>=5.1",
     "python-multipart>=0.0.20",
+    "prometheus-client>=0.21",
 ]
 
 [project.optional-dependencies]

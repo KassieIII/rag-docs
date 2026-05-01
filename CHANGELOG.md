@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `POST /ask/stream` — Server-Sent Events variant of `/ask`. Emits a
+  `citations` event up front (so a client can render sources before the
+  model finishes), then incremental `token` events from the local LLM,
+  then a terminal `done` event.
+- `GET /metrics` — Prometheus text-format exposition. Tracks request
+  counts (per status × rerank-mode), end-to-end `/ask` latency,
+  retrieval / rerank / LLM sub-latencies, and a counter for
+  "I don't know" outcomes from empty retrieval.
+- New `LLMClient.stream()` protocol method, implemented by the Ollama
+  client (NDJSON streaming) and the test stub.
+- `scripts/demo.sh` — copy-pasteable end-to-end demo of `/health`,
+  `/ingest`, `/ask`, `/ask/stream`, and `/metrics` against a running
+  stack; used to record the asciinema clip in the README.
+
 ## [0.1.0] - 2026-04-30
 
 First public release.
