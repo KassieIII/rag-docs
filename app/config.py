@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+RetrieveMode = Literal["vector", "bm25", "hybrid"]
 
 
 class Settings(BaseSettings):
@@ -39,6 +42,16 @@ class Settings(BaseSettings):
     # --- Retrieval --------------------------------------------------------
     retrieve_top_k: int = Field(default=5, ge=1, le=50)
     retrieve_score_threshold: float = Field(default=0.25, ge=0.0, le=1.0)
+    retrieve_mode: RetrieveMode = Field(
+        default="hybrid",
+        description=(
+            "Retrieval strategy: 'vector' (pgvector cosine), 'bm25' "
+            "(Postgres FTS via ts_rank_cd), or 'hybrid' (both fused with "
+            "Reciprocal Rank Fusion). Hybrid is the default because it "
+            "is robust to exact-match terms (function names, versions) "
+            "that pure embeddings sometimes miss."
+        ),
+    )
     rerank_enabled: bool = Field(default=False)
 
     # --- Chunking ---------------------------------------------------------

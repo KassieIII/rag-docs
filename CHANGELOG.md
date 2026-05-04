@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Hybrid retrieval (BM25 + vector + RRF)** — new default. A generated
+  `chunks.text_tsv` (`tsvector`, English config) with a GIN index gives
+  Postgres-side BM25-style scoring via `ts_rank_cd`; the application
+  fuses it with the existing pgvector cosine ranking using Reciprocal
+  Rank Fusion (Cormack et al. 2009, k=60). Queries with literal tokens
+  (function names, version strings, exception names) that the embedder
+  alone tends to miss now surface from the lexical branch.
+- New env var `RETRIEVE_MODE` (`vector` | `bm25` | `hybrid`, default
+  `hybrid`).
+- New SQLAlchemy helpers `search_bm25` and `search_hybrid` plus a pure
+  `reciprocal_rank_fusion()` function, unit-tested without a database.
+- `rag_retrieve_latency_seconds` Prometheus histogram now carries a
+  `mode` label so the three branches can be compared side-by-side.
+- Alembic migration `0004_chunks_tsvector` adds the generated column
+  and GIN index. Idempotent on re-runs because the rest of the schema
+  is untouched.
+
 - `POST /ask/stream` — Server-Sent Events variant of `/ask`. Emits a
   `citations` event up front (so a client can render sources before the
   model finishes), then incremental `token` events from the local LLM,

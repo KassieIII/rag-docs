@@ -52,7 +52,8 @@ ASK_LATENCY = Histogram(
 
 RETRIEVE_LATENCY = Histogram(
     "rag_retrieve_latency_seconds",
-    "Time spent in pgvector search (excluding rerank).",
+    "Time spent in retrieval (excluding rerank), labelled by mode.",
+    labelnames=("mode",),
     buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5),
     registry=REGISTRY,
 )

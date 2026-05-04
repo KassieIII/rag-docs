@@ -36,11 +36,17 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
 
     app.dependency_overrides[get_session] = fake_session
     app.dependency_overrides[get_llm] = lambda: stub_llm
-    # main.py imports `search` by name, so we patch it on main, not on the
-    # source module.
+    # main.py imports `search`, `search_bm25`, `search_hybrid` by name,
+    # so we patch them on main, not on the source module. Patching all
+    # three lets the test work whatever RETRIEVE_MODE is configured.
     import app.main as main_module
 
+    async def fake_hybrid(_session, query: str, *, top_k: int = 5, **_kw):
+        return await fake_search(_session, query, top_k=top_k)
+
     monkeypatch.setattr(main_module, "search", fake_search)
+    monkeypatch.setattr(main_module, "search_bm25", fake_hybrid)
+    monkeypatch.setattr(main_module, "search_hybrid", fake_hybrid)
 
     with TestClient(app) as c:
         yield c

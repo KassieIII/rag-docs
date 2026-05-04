@@ -20,6 +20,10 @@ required.
 
 Most RAG repos hide quality behind a chatbot UI. This one ships:
 
+- **Hybrid retrieval by default**: pgvector cosine + Postgres BM25
+  (`ts_rank_cd`) fused with **Reciprocal Rank Fusion**, so exact-match
+  terms (function names, version strings, error codes) don't get lost
+  to a paraphrased neighbour. Switch with `RETRIEVE_MODE=vector|bm25|hybrid`.
 - **Eval harness** with 25 golden Q&A pairs and a `run_eval.py` script that
   measures `recall@k`, citation accuracy, keyword coverage, and latency.
 - **Honest metrics** in the README — see [Eval results](#eval-results).
@@ -109,8 +113,22 @@ design, and why pgvector beat the alternatives I considered.
 
 Full OpenAPI at `http://localhost:8000/docs` once the API is up.
 
-### Streaming answers (SSE)
+### Retrieval modes
 
+`RETRIEVE_MODE` selects how chunks are scored:
+
+| mode      | description |
+|-----------|-------------|
+| `vector`  | pgvector cosine over bge-small embeddings only. |
+| `bm25`    | Postgres FTS (`websearch_to_tsquery` + `ts_rank_cd`) over a generated `tsvector` column with a GIN index. |
+| `hybrid`  | **default** — both branches over-fetch (`4 × top_k` each), then results are merged with [Reciprocal Rank Fusion](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf) (`k=60`). Robust to score-scale mismatch and short queries. |
+
+Hybrid wins when queries contain literal tokens that the embedder can't
+distinguish — e.g. `--reload` vs `--reload-dir`, `v0.115.0`, or specific
+exception names — because the lexical branch surfaces them at rank 1
+while the vector branch gives semantic recall on the rest.
+
+### Streaming answers (SSE)
 `POST /ask/stream` returns a `text/event-stream`. Citations arrive
 **up-front** so a UI can render sources before the model finishes; the
 answer text then streams in `token` events; the connection ends with a

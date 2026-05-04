@@ -22,7 +22,7 @@ from app.ingest.loader import load_url
 from app.ingest.pipeline import ingest_document
 from app.models import Chunk, Document
 from app.retrieve.rerank import rerank
-from app.retrieve.search import Hit, search
+from app.retrieve.search import Hit, search, search_bm25, search_hybrid
 from app.schemas import (
     AskRequest,
     AskResponse,
@@ -84,21 +84,37 @@ async def ingest(
 async def _retrieve(session: AsyncSession, question: str, top_k: int) -> list[Hit]:
     """Run retrieval (+ optional rerank) with metrics around each step."""
     settings = get_settings()
+    # Rerank wants extra candidates; the hybrid path already over-fetches
+    # internally so we only over-fetch on the pure vector / bm25 branches.
     over_fetch = top_k * 4 if settings.rerank_enabled else top_k
 
     t0 = time.perf_counter()
-    hits = await search(
-        session,
-        question,
-        top_k=over_fetch,
-        min_score=settings.retrieve_score_threshold,
+    if settings.retrieve_mode == "hybrid":
+        hits = await search_hybrid(
+            session,
+            question,
+            top_k=over_fetch,
+            min_score=settings.retrieve_score_threshold,
+        )
+    elif settings.retrieve_mode == "bm25":
+        hits = await search_bm25(session, question, top_k=over_fetch)
+    else:
+        hits = await search(
+            session,
+            question,
+            top_k=over_fetch,
+            min_score=settings.retrieve_score_threshold,
+        )
+    metrics.RETRIEVE_LATENCY.labels(mode=settings.retrieve_mode).observe(
+        time.perf_counter() - t0
     )
-    metrics.RETRIEVE_LATENCY.observe(time.perf_counter() - t0)
 
     if settings.rerank_enabled and hits:
         t1 = time.perf_counter()
         hits = rerank(question, hits, top_k=top_k)
         metrics.RERANK_LATENCY.observe(time.perf_counter() - t1)
+    elif len(hits) > top_k:
+        hits = hits[:top_k]
     return hits
 
 
