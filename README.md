@@ -227,7 +227,32 @@ Reproduce:
 ```bash
 make eval                               # base
 RERANK_ENABLED=true make eval           # cross-encoder rerank
+make eval-modes                         # vector vs bm25 vs hybrid (writes eval/results_modes.md)
 ```
+
+### Retrieval modes head-to-head
+
+`make eval-modes` runs the same 25 questions three times — once per
+retrieval branch — and emits a markdown table to
+[`eval/results_modes.md`](eval/results_modes.md). The harness uses the
+per-request `retrieve_mode` override on `/ask` so all three runs hit
+the same warm corpus and the same LLM.
+
+What to expect on this corpus:
+
+- **vector** — strongest on paraphrased questions ("how do I add
+  middleware?" → match against "add middleware via `app.add_middleware`").
+- **bm25** — strongest on literal-token questions (decorator names,
+  exception classes, version strings) where the embedder collapses
+  near-synonyms.
+- **hybrid** — typically matches whichever branch wins on a given
+  question, with a small overhead from the second SQL round-trip and
+  the fusion step. The interesting case is the long tail where
+  neither branch alone reaches the right chunk in top-5 but RRF lifts
+  it because both branches rank it just outside the cutoff.
+
+Run it after a restart to warm the embedder cache before timing — the
+first call after boot pays the model-load cost.
 
 ---
 

@@ -1,4 +1,4 @@
-.PHONY: help up down logs ingest ask ask-stream metrics demo eval test lint typecheck format migrate model-pull
+.PHONY: help up down logs ingest ask ask-stream metrics demo eval eval-modes test lint typecheck format migrate model-pull
 
 PY ?= python
 URL ?= https://raw.githubusercontent.com/tiangolo/fastapi/master/docs/en/docs/tutorial/first-steps.md
@@ -15,6 +15,7 @@ help:
 	@echo "  ingest URL=  POST /ingest with the given URL"
 	@echo "  ask          POST /ask with QUESTION=..."
 	@echo "  eval         python eval/run_eval.py"
+	@echo "  eval-modes   compare vector / bm25 / hybrid retrieval, write markdown table"
 	@echo "  test         pytest"
 	@echo "  lint         ruff check ."
 	@echo "  format       ruff format ."
@@ -58,6 +59,9 @@ demo:
 
 eval:
 	$(PY) eval/run_eval.py --base-url http://localhost:8000
+
+eval-modes:
+	$(PY) eval/run_eval_modes.py --base-url http://localhost:8000
 
 test:
 	pytest

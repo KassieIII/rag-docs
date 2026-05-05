@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Per-request `retrieve_mode` override** on `POST /ask` and
+  `POST /ask/stream`. The new optional field on `AskRequest` lets a
+  client pick `vector` / `bm25` / `hybrid` for a single call without
+  restarting the server, falling back to the `RETRIEVE_MODE` env var
+  when omitted.
+- **`eval/run_eval_modes.py`** — runs the 25-question golden set three
+  times (one per mode) against the same warm corpus and writes a
+  markdown table to `eval/results_modes.md`. Wired into `make eval-modes`.
+- README "Retrieval modes head-to-head" section explaining when each
+  branch wins and how to interpret the numbers.
+
 ## [0.2.0] - 2026-05-04
 
 ### Added

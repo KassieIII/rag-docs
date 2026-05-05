@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, Field, HttpUrl
+
+RetrieveModeName = Literal["vector", "bm25", "hybrid"]
 
 
 class IngestRequest(BaseModel):
@@ -19,6 +23,14 @@ class IngestResponse(BaseModel):
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     top_k: int = Field(default=5, ge=1, le=20)
+    retrieve_mode: RetrieveModeName | None = Field(
+        default=None,
+        description=(
+            "Per-request override for the retrieval strategy. When omitted, "
+            "the server falls back to the RETRIEVE_MODE env var. Used by "
+            "the eval harness to compare modes against the same corpus."
+        ),
+    )
 
 
 class Citation(BaseModel):

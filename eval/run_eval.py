@@ -53,7 +53,7 @@ def load_golden(path: Path = GOLDEN_PATH) -> list[Case]:
     return cases
 
 
-def evaluate(base_url: str, top_k: int) -> dict[str, float]:
+def evaluate(base_url: str, top_k: int, mode: str | None = None) -> dict[str, float]:
     cases = load_golden()
     recall_hits = 0
     citation_ok = 0
@@ -63,10 +63,13 @@ def evaluate(base_url: str, top_k: int) -> dict[str, float]:
     with httpx.Client(timeout=600.0) as client:
         for case in cases:
             t0 = time.perf_counter()
-            resp = client.post(
-                f"{base_url}/ask",
-                json={"question": case.question, "top_k": top_k},
-            )
+            payload: dict[str, object] = {
+                "question": case.question,
+                "top_k": top_k,
+            }
+            if mode is not None:
+                payload["retrieve_mode"] = mode
+            resp = client.post(f"{base_url}/ask", json=payload)
             latencies.append(time.perf_counter() - t0)
             resp.raise_for_status()
             body = resp.json()
@@ -107,9 +110,15 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base-url", default="http://localhost:8000")
     parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument(
+        "--mode",
+        choices=("vector", "bm25", "hybrid"),
+        default=None,
+        help="Override RETRIEVE_MODE per request. Defaults to the server's setting.",
+    )
     args = parser.parse_args(argv)
 
-    metrics = evaluate(args.base_url, args.top_k)
+    metrics = evaluate(args.base_url, args.top_k, args.mode)
     width = max(len(k) for k in metrics)
     for key, value in metrics.items():
         print(f"{key:<{width}}  {value:.4f}")

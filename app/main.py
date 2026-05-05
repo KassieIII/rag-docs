@@ -81,22 +81,35 @@ async def ingest(
     )
 
 
-async def _retrieve(session: AsyncSession, question: str, top_k: int) -> list[Hit]:
-    """Run retrieval (+ optional rerank) with metrics around each step."""
+async def _retrieve(
+    session: AsyncSession,
+    question: str,
+    top_k: int,
+    *,
+    mode_override: str | None = None,
+) -> list[Hit]:
+    """Run retrieval (+ optional rerank) with metrics around each step.
+
+    ``mode_override`` lets a single request opt into a different
+    retrieval branch than the server-wide default — useful for the
+    eval harness when comparing vector / bm25 / hybrid side-by-side
+    against the same corpus.
+    """
     settings = get_settings()
+    mode = mode_override or settings.retrieve_mode
     # Rerank wants extra candidates; the hybrid path already over-fetches
     # internally so we only over-fetch on the pure vector / bm25 branches.
     over_fetch = top_k * 4 if settings.rerank_enabled else top_k
 
     t0 = time.perf_counter()
-    if settings.retrieve_mode == "hybrid":
+    if mode == "hybrid":
         hits = await search_hybrid(
             session,
             question,
             top_k=over_fetch,
             min_score=settings.retrieve_score_threshold,
         )
-    elif settings.retrieve_mode == "bm25":
+    elif mode == "bm25":
         hits = await search_bm25(session, question, top_k=over_fetch)
     else:
         hits = await search(
@@ -105,7 +118,7 @@ async def _retrieve(session: AsyncSession, question: str, top_k: int) -> list[Hi
             top_k=over_fetch,
             min_score=settings.retrieve_score_threshold,
         )
-    metrics.RETRIEVE_LATENCY.labels(mode=settings.retrieve_mode).observe(
+    metrics.RETRIEVE_LATENCY.labels(mode=mode).observe(
         time.perf_counter() - t0
     )
 
@@ -142,7 +155,9 @@ async def ask(
     rerank_label = "on" if settings.rerank_enabled else "off"
     t_start = time.perf_counter()
     try:
-        hits = await _retrieve(session, body.question, body.top_k)
+        hits = await _retrieve(
+            session, body.question, body.top_k, mode_override=body.retrieve_mode
+        )
         if not hits:
             metrics.ASK_NO_HITS.inc()
             metrics.ASK_REQUESTS.labels(status="200", rerank=rerank_label).inc()
@@ -183,7 +198,9 @@ async def ask_stream(
     async def event_stream() -> AsyncIterator[bytes]:
         t_start = time.perf_counter()
         try:
-            hits = await _retrieve(session, body.question, body.top_k)
+            hits = await _retrieve(
+                session, body.question, body.top_k, mode_override=body.retrieve_mode
+            )
             citations_payload = [c.model_dump() for c in _citations(hits)]
             yield _sse("citations", {"citations": citations_payload})
 
