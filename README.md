@@ -13,6 +13,11 @@ required.
 ![pgvector](https://img.shields.io/badge/pgvector-HNSW-4169e1)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![Live demo on Hugging Face](https://img.shields.io/badge/🤗%20Try%20it%20live-Hugging%20Face%20Space-yellow)](https://huggingface.co/spaces/KassieIII/rag-docs-demo)
+
+> **🤗 [Try it live](https://huggingface.co/spaces/KassieIII/rag-docs-demo)** —
+> a hosted Gradio demo with the same chunker, `bge-small` embeddings, and
+> vector / BM25 / hybrid (RRF) retrieval. No setup required.
 
 ---
 
@@ -173,6 +178,10 @@ make metrics
 ---
 
 ## Demo
+
+**Hosted demo:** [huggingface.co/spaces/KassieIII/rag-docs-demo](https://huggingface.co/spaces/KassieIII/rag-docs-demo)
+— ask questions against the FastAPI docs in your browser and watch citations,
+retrieval mode, and latency live.
 
 A copy-pasteable end-to-end walkthrough lives in
 [`scripts/demo.sh`](scripts/demo.sh): `/health` → `/ingest` →
